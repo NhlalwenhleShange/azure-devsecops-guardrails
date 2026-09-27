@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>azure-devsecops-guardrails Telemetry</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        azure: '#0078D4',
+                        darkbg: '#0F172A',
+                        cardbg: '#1E293B'
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-darkbg text-slate-100 font-sans min-h-screen flex flex-col justify-between p-6">
+    <div class="max-w-5xl mx-auto w-full">
+        <header class="flex justify-between items-center pb-6 border-b border-slate-700 mb-8">
+            <div class="flex items-center space-x-3">
+                <div class="h-4 w-4 rounded-full bg-emerald-500 animate-pulse"></div>
+                <h1 class="text-2xl font-bold tracking-wide">azure-devsecops-guardrails</h1>
+            </div>
+            <span class="bg-blue-900/50 text-blue-300 text-xs font-semibold px-3 py-1.5 rounded-full border border-blue-700/50">
+                Azure Container Apps
+            </span>
+        </header>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="bg-cardbg p-6 rounded-xl border border-slate-700 shadow-lg">
+                <p class="text-slate-400 text-sm font-medium">Service Health</p>
+                <div class="flex items-center justify-between mt-2">
+                    <span class="text-2xl font-bold text-emerald-400">OPERATIONAL</span>
+                    <span class="text-xs bg-emerald-950 text-emerald-300 px-2 py-1 rounded border border-emerald-800">HTTP 200</span>
+                </div>
+            </div>
+
+            <div class="bg-cardbg p-6 rounded-xl border border-slate-700 shadow-lg">
+                <p class="text-slate-400 text-sm font-medium">System Uptime</p>
+                <p id="uptime" class="text-2xl font-bold text-slate-100 mt-2">Loading...</p>
+            </div>
+
+            <div class="bg-cardbg p-6 rounded-xl border border-slate-700 shadow-lg">
+                <p class="text-slate-400 text-sm font-medium">Target Region</p>
+                <p class="text-2xl font-bold text-azure mt-2">South Africa North</p>
+            </div>
+        </div>
+
+        <div class="bg-cardbg p-6 rounded-xl border border-slate-700 shadow-lg mb-8">
+            <h2 class="text-lg font-semibold mb-4 text-slate-200">Real-Time Metrics</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <div class="flex justify-between text-sm mb-2">
+                        <span class="text-slate-400">CPU Usage</span>
+                        <span id="cpu-text" class="text-slate-200 font-semibold">0%</span>
+                    </div>
+                    <div class="w-full bg-slate-800 rounded-full h-3">
+                        <div id="cpu-bar" class="bg-azure h-3 rounded-full transition-all duration-500" style="width: 0%"></div>
+                    </div>
+                </div>
+                <div>
+                    <div class="flex justify-between text-sm mb-2">
+                        <span class="text-slate-400">Memory Utilization</span>
+                        <span id="mem-text" class="text-slate-200 font-semibold">0%</span>
+                    </div>
+                    <div class="w-full bg-slate-800 rounded-full h-3">
+                        <div id="mem-bar" class="bg-purple-500 h-3 rounded-full transition-all duration-500" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-cardbg p-6 rounded-xl border border-slate-700 shadow-lg">
+            <h2 class="text-lg font-semibold mb-4 text-slate-200">REST Endpoints</h2>
+            <div class="flex flex-wrap gap-4">
+                <a href="/health" target="_blank" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-sm px-4 py-2 rounded-lg border border-slate-600 transition">
+                    GET /health
+                </a>
+                <a href="/api/v1/telemetry" target="_blank" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-sm px-4 py-2 rounded-lg border border-slate-600 transition">
+                    GET /api/v1/telemetry
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <footer class="mt-12 text-center text-xs text-slate-500">
+        Deployed via GitHub Actions CI/CD pipeline to Azure Container Apps
+    </footer>
+
+    <script>
+        async function fetchTelemetry() {
+            try {
+                const res = await fetch('/api/v1/telemetry');
+                const data = await res.json();
+                
+                document.getElementById('uptime').innerText = data.uptime;
+                
+                const cpu = data.cpu_usage_pct;
+                document.getElementById('cpu-text').innerText = cpu + '%';
+                document.getElementById('cpu-bar').style.width = cpu + '%';
+                
+                const mem = data.memory_usage_pct;
+                document.getElementById('mem-text').innerText = mem + '%';
+                document.getElementById('mem-bar').style.width = mem + '%';
+            } catch (err) {
+                console.error("Failed to fetch telemetry", err);
+            }
+        }
+
+        fetchTelemetry();
+        setInterval(fetchTelemetry, 3000);
+    </script>
+</body>
+</html>
